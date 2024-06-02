@@ -13,15 +13,17 @@ function mv_file() {
 	fi
 }
 
+export -f get_file_type
+
 function compress_logic() {
 	# $1 is the file
-	# $2 is the file type
-	case "$2" in
+	FILETYPE=$(get_file_type $1)
+	case "$FILETYPE" in
 	"gzip" | "bzip2" | "Zip" | "compress'd")
 		mv_file "$1"
 		;;
 	*)
-		zip "fc-$1" "$1"
+		zip -Tm "$(dirname "$1")/fc-$(basename "$1")" "$1"
 		;;
 	esac
 
@@ -31,13 +33,14 @@ export -f compress_logic
 
 function directory_pack() {
 	if [[ "$1" == "-r" ]]; then
-		echo "$2"
-		find "$2" -type f -exec bash -c 'compress_logic "$(basename "$0")"' {} \;
+		#echo "$2"
+		find "$2" -type f ! -name 'fc-*' -exec sh -c 'zip -Tm "$(dirname "$1")/fc-$(basename "$1")" "$1"' _ {} \;
+		#find "$2" ! -name 'fc-*' -exec zip -Tm fc-{} {}\;
 	fi
 
 	if [[ "$1" == "!r" ]]; then
-		find "$2" -maxdepth 1 -type f | rev | cut -d "/" -f 1 | rev
-		#-exec bash -c 'compress_logic "${1#./}"' _ {} \;
+		#find "$2" -maxdepth 1 -type f ! -name 'fc-*' -exec sh -c 'zip -Tm "$(dirname "$1")/fc-$(basename "$1")" "$1"' _ {} \;
+		find "$2" -maxdepth 1 -type f ! -name 'fc-*' -exec bash -c 'compress_logic "$0"' {} \;
 	fi
 }
 
@@ -79,5 +82,5 @@ if [[ ! -z "$RECURSIVE" ]]; then
 elif [[ -d "${!OPTIND}" ]]; then
 	directory_pack "!r" "${!OPTIND}"
 else
-	zip "fc-${!OPTIND}" "${!OPTIND}"
+	compress_logic "${!OPTIND}"
 fi
