@@ -1,5 +1,10 @@
 #!/bin/bash
 
+function usage() {
+	# A function that echoes the correct usage of the function when the user gives it wrong inputs
+	echo "Usage: freespace [-r] [-t ###] file [file...]"
+}
+
 # Runs the 'file' command on the input, determines the file type by isolating the second field of the output using awk.
 function get_file_type() {
 	echo $(file $1) | awk '{print $2}'
@@ -34,7 +39,8 @@ export -f compress_logic
 function directory_pack() {
 	if [[ "$1" == "-r" ]]; then
 		#echo "$2"
-		find "$2" -type f ! -name 'fc-*' -exec sh -c 'zip -Tm "$(dirname "$1")/fc-$(basename "$1")" "$1"' _ {} \;
+		find "$2" -type f ! -name 'fc-*' -exec bash -c 'compress_logic "$0"' {} \;
+		#'zip -Tm "$(dirname "$1")/fc-$(basename "$1")" "$1"' _ {} \;
 		#find "$2" ! -name 'fc-*' -exec zip -Tm fc-{} {}\;
 	fi
 
